@@ -1,0 +1,45 @@
+version: '3.4'
+
+services:
+
+  arteia-api:
+    image: arteia-api-image
+    container_name: arteia-api-container
+    environment:
+      REDIS_HOST: arteia-redis
+      REDIS_PORT: 6379
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      REDIS_QUEUE: task-queue
+    ports:
+      - 5000:5000
+    volumes:
+      - ./:/app
+    command: python api.py
+
+  arteia-worker:
+    image: arteia-worker-image
+    container_name: arteia-worker-container
+    command: python worker.py
+    environment:
+      REDIS_HOST: arteia-redis
+      REDIS_PORT: 6379
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
+      REDIS_QUEUE: task-queue
+    volumes:
+      - ./:/app
+
+  arteia-redis:
+    image: redis
+    container_name: arteia-redis-container
+    ports:
+      - 6379:6379
+
+  arteia-database:
+    image: postgres:10
+    container_name: arteia-db-container
+    environment:
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql

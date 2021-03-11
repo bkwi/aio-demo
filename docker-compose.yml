@@ -19,7 +19,6 @@ services:
 
   arteia-worker:
     image: arteia-worker-image
-    container_name: arteia-worker-container
     command: python worker.py
     environment:
       REDIS_HOST: arteia-redis
@@ -32,13 +31,11 @@ services:
 
   arteia-redis:
     image: redis
-    container_name: arteia-redis-container
     ports:
       - 6379:6379
 
   arteia-database:
     image: postgres:10
-    container_name: arteia-db-container
     environment:
       POSTGRES_PASSWORD: "postgres"
     volumes:

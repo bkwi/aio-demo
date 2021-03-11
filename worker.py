@@ -1,10 +1,23 @@
 import os
+import sys
 import json
 import time
 import random
+import logging
 
 from redis import Redis
 from sqlalchemy import create_engine
+
+
+logger = logging.getLogger('worker')
+logger.setLevel(logging.DEBUG)
+stdout_handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(name)s[%(process)d] - %(pathname)s:%(lineno)d :: %(message)s'
+)
+stdout_handler.setFormatter(formatter)
+stdout_handler.setLevel(logging.DEBUG)
+logger.addHandler(stdout_handler)
 
 REDIS_HOST = os.environ['REDIS_HOST']
 REDIS_PORT = os.environ['REDIS_PORT']
@@ -21,16 +34,16 @@ def cpu_heavy_task(n):
 
 
 def run():
-    print('Worker starting')
+    logger.info('Worker starting')
     while True:
         queue_name, item = r.brpop(REDIS_QUEUE)
 
         n = random.randint(25, 35)
         item_id = json.loads(item)['item_id']
-        print(f'Worker received item: {item}. Random int: {n}')
+        logger.info('Worker received item: %s. Random int: %s', item, n)
         t0 = time.time()
         result = cpu_heavy_task(n)
-        print(f'Result: {result}. Time used: {time.time() - t0}')
+        logger.info('Result: %s. Time used: %s', result, time.time() - t0)
 
         query = f"""
             UPDATE items
